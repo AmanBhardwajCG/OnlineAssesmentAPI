@@ -1,0 +1,6 @@
+@OnlineAssesmentAPI_HostAddress = http://localhost:5270
+
+GET {{OnlineAssesmentAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
