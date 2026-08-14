@@ -5,6 +5,7 @@ using OnlineAssesmentAPI.Data;
 using OnlineAssesmentAPI.Interface;
 using System.Data;
 using System.Xml.Linq;
+using static OnlineAssesmentAPI.Class.AppEnum;
 
 namespace OnlineAssesmentAPI.Repositories
 {
@@ -27,6 +28,14 @@ namespace OnlineAssesmentAPI.Repositories
             command.Parameters.AddWithValue("@Name", user.Name);
             command.Parameters.AddWithValue("@Email", user.Email);
             command.Parameters.AddWithValue("@PasswordHash", user.Password);
+            //command.Parameters.AddWithValue("@RoleId", (int)user.Role);
+            if (!Enum.TryParse<Role>(user.Role, true, out var role))
+            {
+                throw new ArgumentException("Invalid role");
+            }
+
+            command.Parameters.AddWithValue("@RoleId", (int)role);
+
             await connection.OpenAsync();
 
             var result = await command.ExecuteScalarAsync();
