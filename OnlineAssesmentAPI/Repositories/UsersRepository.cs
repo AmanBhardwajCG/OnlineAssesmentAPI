@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Data.SqlClient;
 using OnlineAssesmentAPI.Class;
 using OnlineAssesmentAPI.Data;
@@ -6,6 +7,7 @@ using OnlineAssesmentAPI.Interface;
 using System.Data;
 using System.Xml.Linq;
 using static OnlineAssesmentAPI.Class.AppEnum;
+using static OnlineAssesmentAPI.ModelClass.UserLogin;
 
 namespace OnlineAssesmentAPI.Repositories
 {
@@ -27,7 +29,8 @@ namespace OnlineAssesmentAPI.Repositories
 
             command.Parameters.AddWithValue("@Name", user.Name);
             command.Parameters.AddWithValue("@Email", user.Email);
-            command.Parameters.AddWithValue("@PasswordHash", user.Password);
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            command.Parameters.AddWithValue("@PasswordHash", passwordHash);
             //command.Parameters.AddWithValue("@RoleId", (int)user.Role);
             if (!Enum.TryParse<Role>(user.Role, true, out var role))
             {
@@ -43,6 +46,53 @@ namespace OnlineAssesmentAPI.Repositories
             return Convert.ToInt64(result);
 
         }
-     
+
+        public async Task<LoginResponse?> LoginAsync(UserLoginRequest request)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand("sp_user_login", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@Email", SqlDbType.NVarChar).Value = request.Email;
+
+            await connection.OpenAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return null;
+
+            string dbPasswordHash = reader["PasswordHash"].ToString();
+            bool IsActive = Convert.ToBoolean(reader["IsActive"]);
+            bool validPassword = BCrypt.Net.BCrypt.Verify(
+              request.Password,
+             dbPasswordHash
+               );
+            if (!validPassword)
+                return null;
+            // Temporary plain-text comparison
+            //if (dbPassword != request.Password)
+            //    return null;
+
+            // Check inactive account
+            if (!IsActive)
+            {
+                return new LoginResponse
+                {
+                    IsActive = false,
+                    Message = "Your account is inactive. Please contact the administrator."
+                };
+            }
+            return new LoginResponse
+            {
+                Message="Login successfully",
+                Userid = Convert.ToInt64(reader["UserId"]),
+                Name = reader["Name"].ToString(),
+                Email = reader["Email"].ToString(),
+                RoleName = reader["RoleName"].ToString()
+            };
+        }
+
     }
 }
