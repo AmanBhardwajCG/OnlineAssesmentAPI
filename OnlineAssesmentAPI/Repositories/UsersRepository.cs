@@ -90,7 +90,8 @@ namespace OnlineAssesmentAPI.Repositories
                 Userid = Convert.ToInt64(reader["UserId"]),
                 Name = reader["Name"].ToString(),
                 Email = reader["Email"].ToString(),
-                RoleName = reader["RoleName"].ToString()
+                RoleName = reader["RoleName"].ToString(),
+                IsActive = IsActive
             };
         }
 

@@ -66,6 +66,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<DbConnectionFactory>();
 builder.Services.AddScoped<IUsersRepository,UsersRepository>();
+builder.Services.AddScoped<IQuestionRepository,QuestionRepository>();
 builder.Services.AddScoped<IJwtService,JwtService>();
 
 var app = builder.Build();
