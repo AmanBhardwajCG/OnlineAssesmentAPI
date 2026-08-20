@@ -44,5 +44,16 @@
 
         public bool IsCorrect { get; set; }
     }
+
+    public class QuestionReview
+    {
+        public long QuestionId { get; set; }
+        public string Status { get; set; }
+    }
+
+    public class MCQQuestion
+    {
+
+    }
 }
 

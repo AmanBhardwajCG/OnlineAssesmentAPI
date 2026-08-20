@@ -68,6 +68,29 @@ namespace OnlineAssesmentAPI.Controllers
             }
         }
 
-
+        //[Authorize(Roles ="Admin")]
+        [AllowAnonymous]
+        [HttpPost("QuestionReview")]
+        public async Task<IActionResult> QuestionReview(QuestionReview request)
+        {
+            try
+            {
+                var result = await _questionRepository.PublishQuestionAsync(request);
+                if (result)
+                {
+                    return Ok(new { Message = "Question status updated successfully" });
+                }
+                else
+                {
+                    return NotFound(new { Message = "Question not found...Not updated" });
+                }
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An error occurred while updating the question status.");
+            }
+        }
     }
 }

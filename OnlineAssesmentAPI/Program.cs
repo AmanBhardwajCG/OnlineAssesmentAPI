@@ -68,6 +68,10 @@ builder.Services.AddSingleton<DbConnectionFactory>();
 builder.Services.AddScoped<IUsersRepository,UsersRepository>();
 builder.Services.AddScoped<IQuestionRepository,QuestionRepository>();
 builder.Services.AddScoped<IJwtService,JwtService>();
+builder.Services.AddScoped<ICollegeRegRepository,CollegeRegRepository>();
+builder.Services.AddScoped<IStudentRegRepository, StudentRegRepository>();
+builder.Services.AddScoped<IGetDropDownRepo,GetDropDownRepo>();
+builder.Services.AddScoped<IExamRepository, ExamRepository>();
 
 var app = builder.Build();
 

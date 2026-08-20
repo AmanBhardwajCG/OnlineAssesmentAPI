@@ -3,6 +3,7 @@ using OnlineAssesmentAPI.Data;
 using OnlineAssesmentAPI.Interface;
 using OnlineAssesmentAPI.ModelClass;
 using System.Data;
+using System.Net.NetworkInformation;
 
 namespace OnlineAssesmentAPI.Repositories
 {
@@ -105,6 +106,38 @@ namespace OnlineAssesmentAPI.Repositories
                     throw;
                 }
             }
+
+
+        public async Task<bool> PublishQuestionAsync(QuestionReview Review)
+        {
+            try
+            {
+                using var connection = _connectionFactory.CreateConnection();
+                using var command = new SqlCommand("sp_Question_Publish_Archive", connection);
+
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add("@QuestionId", SqlDbType.BigInt).Value = Review.QuestionId;
+                command.Parameters.Add("@Status", SqlDbType.NVarChar).Value = Review.Status;
+
+                await connection.OpenAsync();
+                object? result = await command.ExecuteScalarAsync();
+                return result != null && Convert.ToBoolean(result);
+            }
+            catch (SqlException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
+        //public async Task<MCQQuestion> GetMCQQuestionAsync()
+        //{
+
+        //}
     }
 }
 
