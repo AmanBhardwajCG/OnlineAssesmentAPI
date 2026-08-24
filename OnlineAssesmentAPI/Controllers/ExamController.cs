@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OnlineAssesmentAPI.Interface;
+using OnlineAssesmentAPI.ModelClass;
 using OnlineAssesmentAPI.ModelClass.ExamModel;
+using OnlineAssesmentAPI.Repositories;
 using System.Security.Claims;
 
 namespace OnlineAssesmentAPI.Controllers
@@ -11,10 +14,12 @@ namespace OnlineAssesmentAPI.Controllers
     public class ExamController : ControllerBase
     {
         private readonly IExamRepository _examRepository;
+        private readonly IJwtService _jwtService;
 
-        public ExamController(IExamRepository examRepository)
+        public ExamController(IExamRepository examRepository, IJwtService jwtService)
         {
             _examRepository = examRepository;
+            _jwtService = jwtService;
         }
 
         [HttpPost("CreateExam")]
@@ -54,6 +59,32 @@ namespace OnlineAssesmentAPI.Controllers
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
                     "An error occurred while creating the question.");
+            }
+        }
+
+
+        //[Authorize(Roles ="Admin")]
+        [AllowAnonymous]
+        [HttpPost("ExamReview")]
+        public async Task<IActionResult> QuestionReview(ExamReview request)
+        {
+            try
+            {
+                var result = await _examRepository.PublishExamAsync(request);
+                if (result)
+                {
+                    return Ok(new { Message = "Exam status updated successfully" });
+                }
+                else
+                {
+                    return NotFound(new { Message = "Exam not found...Not updated" });
+                }
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An error occurred while updating the exam status.");
             }
         }
 
@@ -110,7 +141,16 @@ namespace OnlineAssesmentAPI.Controllers
             try
             {
                 var exams = await _examRepository.GetStudentExamsAsync(email,rollNumber);
-                return Ok(exams);
+                if(exams == null)
+                {
+                    return Unauthorized(new
+                    {
+                        Message = "No exams found for the student."
+                    });
+                }
+                var token = _jwtService.GenerateStudentToken(exams.First());
+                return Ok(new { Exams = exams, Token = token });
+                // return Ok(exams);
             }
             catch (Exception)
             {

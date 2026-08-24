@@ -95,5 +95,31 @@ namespace OnlineAssesmentAPI.Repositories
             };
         }
 
+        public async Task<List<GetUsers>> GetUsers()
+        {
+            using var command = new SqlCommand("Usp_GetAllUser", _connectionFactory.CreateConnection());
+            command.CommandType = CommandType.StoredProcedure;
+
+            await command.Connection.OpenAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            var users = new List<GetUsers>();
+
+            while (await reader.ReadAsync())
+            {
+                users.Add(new GetUsers
+                {
+                    Userid = Convert.ToInt64(reader["UserId"]),
+                    Name = reader["Name"].ToString(),
+                    Email = reader["Email"].ToString(),
+                    IsActive = Convert.ToBoolean(reader["IsActive"]),
+                    RoleName = reader["RoleName"].ToString()
+                });
+            }
+
+            return users;
+        }
+
     }
 }

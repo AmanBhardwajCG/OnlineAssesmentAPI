@@ -68,6 +68,29 @@ namespace OnlineAssesmentAPI.Repositories
 
          }
 
+        public async Task<bool> PublishExamAsync(ExamReview Review)
+        {
+            await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            await using SqlCommand command = new SqlCommand("usp_Exam_Publish_Archive", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue(
+                "@ExamId",
+                Review.ExamId);
+
+            command.Parameters.AddWithValue(
+                "@Status",
+                Review.Status);
+
+            await connection.OpenAsync();
+
+            object? result = await command.ExecuteScalarAsync();
+
+            return Convert.ToBoolean(result);
+        }
+
         public async Task<(bool IsSuccess, string Message)> AssignCollegeAsync(AssignExamCollegeRequest request)
         {
             await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
@@ -170,7 +193,7 @@ namespace OnlineAssesmentAPI.Repositories
                    TotalQuestions= Convert.ToInt32(reader["TotalQuestions"]),
                    MCQCount= Convert.ToInt32(reader["MCQCount"]),
                     CodingCount = Convert.ToInt32(reader["CodingCount"]),
-                    status = reader["Status"]?.ToString()?? string.Empty,
+                   // status = reader["Status"]?.ToString()?? string.Empty,
                     StartAt = Convert.ToDateTime(reader["StartAt"]),
                     EndAt = Convert.ToDateTime(reader["EndAt"])
                      
