@@ -20,5 +20,13 @@ namespace OnlineAssesmentAPI.Controllers
             var dropDownValues = await _getDropDownRepo.GetDropDownAsync();
             return Ok(dropDownValues);
         }
+
+        [HttpGet("GetRoles")]
+        public async Task<IActionResult> GetRoles()
+        {
+            var roles = await _getDropDownRepo.GetRoles();
+            return Ok(roles);
+        }
+
     }
 }

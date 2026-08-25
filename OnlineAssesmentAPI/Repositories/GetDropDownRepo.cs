@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using OnlineAssesmentAPI.Class;
 using OnlineAssesmentAPI.Interface;
 using OnlineAssesmentAPI.ModelClass;
 using System.Data;
@@ -36,6 +37,32 @@ namespace OnlineAssesmentAPI.Repositories
                 }
             }
             return dropDownValues;
+        }
+
+
+        public async Task<List<Roles>> GetRoles()
+        {
+            var roles = new List<Roles>();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                await connection.OpenAsync();
+                var query = "Select * from Roles";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            roles.Add(new Roles
+                            {
+                                RoleId = reader.GetInt32("RoleId"),
+                                RoleName = reader.GetString("RoleName")
+                            });
+                        }
+                    }
+                }
+            }
+            return roles;
         }
     }
 }

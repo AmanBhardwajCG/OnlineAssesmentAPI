@@ -68,6 +68,29 @@ namespace OnlineAssesmentAPI.Repositories
 
          }
 
+        public async Task<bool> PublishExamAsync(ExamReview Review)
+        {
+            await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            await using SqlCommand command = new SqlCommand("usp_Exam_Publish_Archive", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue(
+                "@ExamId",
+                Review.ExamId);
+
+            command.Parameters.AddWithValue(
+                "@Status",
+                Review.Status);
+
+            await connection.OpenAsync();
+
+            object? result = await command.ExecuteScalarAsync();
+
+            return Convert.ToBoolean(result);
+        }
+
         public async Task<(bool IsSuccess, string Message)> AssignCollegeAsync(AssignExamCollegeRequest request)
         {
             await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
@@ -113,9 +136,10 @@ namespace OnlineAssesmentAPI.Repositories
         }
 
       
-        public async Task<List<StudentExamResponse>> GetStudentExamsAsync(string email, string rollnumber)
+        public async Task<StudentExamDTO> GetStudentExamsAsync(string email, string rollnumber)
         {
-            var List = new List<StudentExamResponse>();
+            var List = new List<StudentExamDTO>();
+            var Response = new StudentExamDTO();
             await using SqlConnection connection =
                 new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
@@ -139,49 +163,58 @@ namespace OnlineAssesmentAPI.Repositories
             DataTable table = new DataTable();
             while (await reader.ReadAsync())
             {
-                var exam = new StudentExamResponse
+                //student
+
+                if (Response.Student == null)
                 {
-                    StudentId = Convert.ToInt64(
+                    Response.Student = new StudentResponse
+                    {
+                        StudentId = Convert.ToInt64(
                         reader["StudentId"]),
 
-                    RollNumber = reader["RollNumber"]?.ToString()
+                        RollNumber = reader["RollNumber"]?.ToString()
                              ?? string.Empty,
 
-                    Name = reader["StudentName"]?.ToString()
+                        Name = reader["StudentName"]?.ToString()
                            ?? string.Empty,
 
-                    Batch = reader["Batch"]?.ToString()
+                        Batch = reader["Batch"]?.ToString()
                             ?? string.Empty,
 
-                    Course = reader["Course"]?.ToString()
+                        Course = reader["Course"]?.ToString()
                              ?? string.Empty,
 
-                    Email = reader["Email"]?.ToString()
+                        Email = reader["Email"]?.ToString()
                             ?? string.Empty,
 
+
+
+                        CollegeId = Convert.ToInt32(
+                        reader["CollegeId"])
+                    };
+                }
+                Response.Exam.Add(new StudentExamResponse
+                {
+
                     ExamId = Convert.ToInt32(reader["ExamId"]),
-
-                    CollegeId = Convert.ToInt32(
-                        reader["CollegeId"]),
-
-                    ExamName = reader["ExamName"]?.ToString()?? string.Empty,
-                    Description = reader["Description"]?.ToString()?? string.Empty,
-                   DurationMinutes= Convert.ToInt32(reader["DurationMinutes"]),
-                   TotalQuestions= Convert.ToInt32(reader["TotalQuestions"]),
-                   MCQCount= Convert.ToInt32(reader["MCQCount"]),
+                    ExamName = reader["ExamName"]?.ToString() ?? string.Empty,
+                    Description = reader["Description"]?.ToString() ?? string.Empty,
+                    DurationMinutes = Convert.ToInt32(reader["DurationMinutes"]),
+                    TotalQuestions = Convert.ToInt32(reader["TotalQuestions"]),
+                    MCQCount = Convert.ToInt32(reader["MCQCount"]),
                     CodingCount = Convert.ToInt32(reader["CodingCount"]),
-                    status = reader["Status"]?.ToString()?? string.Empty,
                     StartAt = Convert.ToDateTime(reader["StartAt"]),
                     EndAt = Convert.ToDateTime(reader["EndAt"])
+                });
                      
 
-                };
+                }
 
-                List.Add(exam);
+                //List.Add(Response);
 
-            }
+            
 
-                return List;
+                return Response;
 
         }
         public async Task<List<EnrollStudentResponse>> GetEligibleStudentsAsync(long examId)

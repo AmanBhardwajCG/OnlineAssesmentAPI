@@ -51,6 +51,16 @@ namespace OnlineAssesmentAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the user.");
             }
         }
+
+
+        //[Authorize(Roles = "Admin")]
+        [HttpGet("GetAllUsers")]    
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _usersRepository.GetUsers();
+            return Ok(users);
+        }
+
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserLoginRequest request)

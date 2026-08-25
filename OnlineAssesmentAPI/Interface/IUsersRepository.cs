@@ -8,5 +8,7 @@ namespace OnlineAssesmentAPI.Interface
     {
         Task<long> CreateUsersAsync(Users user);
         Task<LoginResponse?> LoginAsync(UserLoginRequest request);
+        Task<List<GetUsers>> GetUsers();
+
     }
 }

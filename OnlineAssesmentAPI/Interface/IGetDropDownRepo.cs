@@ -1,9 +1,12 @@
-﻿using OnlineAssesmentAPI.ModelClass;
+﻿using OnlineAssesmentAPI.Class;
+using OnlineAssesmentAPI.ModelClass;
 
 namespace OnlineAssesmentAPI.Interface
 {
     public interface IGetDropDownRepo
     {
         Task<List<GetCollegebyNameID>> GetDropDownAsync();
+        Task<List<Roles>> GetRoles();
+
     }
 }
