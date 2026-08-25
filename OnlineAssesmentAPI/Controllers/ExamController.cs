@@ -141,15 +141,15 @@ namespace OnlineAssesmentAPI.Controllers
             try
             {
                 var exams = await _examRepository.GetStudentExamsAsync(email,rollNumber);
-                if(exams == null)
+                if(exams.Student == null)
                 {
                     return Unauthorized(new
                     {
                         Message = "No exams found for the student."
                     });
                 }
-                var token = _jwtService.GenerateStudentToken(exams.First());
-                return Ok(new { Exams = exams, Token = token });
+                var token = _jwtService.GenerateStudentToken(exams.Student);
+                return Ok(new { exams.Student,Exams = exams.Exam, Token = token });
                 // return Ok(exams);
             }
             catch (Exception)

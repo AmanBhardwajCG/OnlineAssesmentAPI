@@ -12,7 +12,7 @@ namespace OnlineAssesmentAPI.Interface
 
         Task<List<EnrollStudentResponse>> GetEligibleStudentsAsync(long examId);
 
-        Task<List<StudentExamResponse>> GetStudentExamsAsync(string email, string rollnumber);
+        Task<StudentExamDTO> GetStudentExamsAsync(string email, string rollnumber);
 
         Task<bool> PublishExamAsync(ExamReview Review);
 
