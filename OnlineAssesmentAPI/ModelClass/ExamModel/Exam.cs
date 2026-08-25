@@ -41,20 +41,20 @@
 
     public class StudentExamResponse
     {
-        public long StudentId { get; set; }
+        //public long StudentId { get; set; }
 
-        public string Name { get; set; }
-        public string RollNumber { get; set; }
+        //public string Name { get; set; }
+        //public string RollNumber { get; set; }
 
-        public string Batch { get; set; } 
+        //public string Batch { get; set; }
 
-        public string Course { get; set; }
+        //public string Course { get; set; }
 
-        public string Email { get; set; }
+        //public string Email { get; set; }
 
-        public string MobileNo { get; set; }
+        //public string MobileNo { get; set; }
 
-        public int CollegeId { get; set; }
+        //public int CollegeId { get; set; }
         public long ExamId { get; set; }
         
         public string ExamName { get; set; } 
@@ -63,10 +63,34 @@
         public int TotalQuestions { get; set; }
         public int MCQCount { get; set; }
         public int CodingCount { get; set; }
-       // public string status { get; set; }
         public DateTime StartAt { get; set; }
         public DateTime EndAt { get; set; }
     }
+
+    public class StudentResponse
+    {
+        public long StudentId { get; set; }
+
+        public string Name { get; set; }
+        public string RollNumber { get; set; }
+
+        public string Batch { get; set; }
+
+        public string Course { get; set; }
+
+        public string Email { get; set; }
+
+        public string MobileNo { get; set; }
+
+        public int CollegeId { get; set; }
+    }
+
+    public class StudentExamDTO
+    {
+        public StudentResponse? Student { get; set; }
+        public List<StudentExamResponse> Exam { get; set; } = new();
+    }
+           
 
     public class ExamReview
     {

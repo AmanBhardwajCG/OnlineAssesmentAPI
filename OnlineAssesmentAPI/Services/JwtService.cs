@@ -48,7 +48,7 @@ namespace OnlineAssesmentAPI.Services
         }
 
 
-        public string? GenerateStudentToken(StudentExamResponse response)
+        public string? GenerateStudentToken(StudentResponse response)
         {
             
             var claims = new List<Claim>
