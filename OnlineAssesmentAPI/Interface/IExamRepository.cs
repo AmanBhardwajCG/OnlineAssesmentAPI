@@ -16,5 +16,7 @@ namespace OnlineAssesmentAPI.Interface
 
         Task<bool> PublishExamAsync(ExamReview Review);
 
+        Task<StartAttemptResponse> StartExamAttemptAsync(long examId,long studentId);
+        Task<StudentExamDTO> GetScheduledExamsForStudentAsync(int studentId);
     }
 }
