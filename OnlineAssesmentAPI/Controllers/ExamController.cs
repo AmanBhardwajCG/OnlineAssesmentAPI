@@ -145,11 +145,11 @@ namespace OnlineAssesmentAPI.Controllers
                 {
                     return Unauthorized(new
                     {
-                        Message = "No exams found for the student."
+                        exams.Message
                     });
                 }
                 var token = _jwtService.GenerateStudentToken(exams.Student);
-                return Ok(new { exams.Student,Exams = exams.Exam, Token = token });
+                return Ok(new {exams.Student,Exams = exams.Exam, Token = token });
                 // return Ok(exams);
             }
             catch (Exception)
@@ -157,6 +157,79 @@ namespace OnlineAssesmentAPI.Controllers
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
                     "An error occurred while fetching exams for the student.");
+            }
+        }
+
+
+        [HttpPost("start/{examId:long}")]
+        public async Task<IActionResult> StartExam(long examId)
+        {
+            try
+            {
+                // Get StudentId from JWT
+                long studentId = GetStudentIdFromToken();
+                if(studentId==null)
+                {
+                    return Unauthorized();
+                }
+                var response =
+                    await _examRepository.StartExamAttemptAsync(
+                        examId,
+                        studentId);
+
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(response);
+                }
+
+                return Ok(response);
+            }
+            catch(UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An error occurred while starting the exam.");
+            }
+        }
+
+
+        private long GetStudentIdFromToken()
+        {
+            var studentIdClaim = User.FindFirst("studentId")?.Value;
+
+            if (!long.TryParse(studentIdClaim, out long studentId))
+            {
+                throw new UnauthorizedAccessException(
+                    "Student ID not found in token.");
+            }
+
+            return studentId;
+        }
+
+        [HttpGet("GetScheduledExamsForStudent")]
+        public async Task<IActionResult> GetScheduledExamsForStudent(int studentId)
+        {
+            try
+            {
+                var exams = await _examRepository.GetScheduledExamsForStudentAsync(studentId);
+                if (exams == null)
+                {
+                    return NotFound(new
+                    {
+                        Message = "No scheduled exams found for the student."
+                    });
+                }
+                return Ok(exams.Exam);
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An error occurred while fetching scheduled exams for the student.");
             }
         }
     }

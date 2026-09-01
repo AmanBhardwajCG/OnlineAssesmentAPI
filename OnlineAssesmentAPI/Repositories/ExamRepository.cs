@@ -1,7 +1,9 @@
-﻿using DocumentFormat.OpenXml.Office2010.ExcelAc;
+﻿using Dapper;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.Data.SqlClient;
 using OnlineAssesmentAPI.Interface;
 using OnlineAssesmentAPI.ModelClass.ExamModel;
+using ServiceStack;
 using System.Data;
 
 namespace OnlineAssesmentAPI.Repositories
@@ -140,7 +142,7 @@ namespace OnlineAssesmentAPI.Repositories
         {
             var List = new List<StudentExamDTO>();
             var Response = new StudentExamDTO();
-            await using SqlConnection connection =
+            await using SqlConnection connection = 
                 new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             await using SqlCommand command = new SqlCommand("sp_Student_GetExams", connection);
@@ -154,6 +156,171 @@ namespace OnlineAssesmentAPI.Repositories
             command.Parameters.AddWithValue(
                 "@RollNumber",
                 rollnumber);
+
+            await connection.OpenAsync();
+
+            await using SqlDataReader reader =
+                await command.ExecuteReaderAsync();
+
+            DataTable table = new DataTable();
+            
+            while (await reader.ReadAsync())
+            {
+                //student
+                if (reader.GetName(0).Contains("IsSuccess"))
+                {
+                    return new StudentExamDTO
+                    {
+                        Message = reader["Message"]?.ToString()
+                    };
+                }
+                if (Response.Student == null)
+                {
+                    Response.Student = new StudentResponse
+                    {
+                        StudentId = Convert.ToInt64(
+                        reader["StudentId"]),
+
+                        RollNumber = reader["RollNumber"]?.ToString()
+                             ?? string.Empty,
+
+                        Name = reader["StudentName"]?.ToString()
+                           ?? string.Empty,
+                          
+                        Batch = reader["Batch"]?.ToString()
+                            ?? string.Empty,
+
+                        Course = reader["Course"]?.ToString()
+                             ?? string.Empty,
+
+                        Email = reader["Email"]?.ToString()
+                            ?? string.Empty,
+
+
+
+                        CollegeId = Convert.ToInt32(
+                        reader["CollegeId"])
+                    };
+                }
+                Response.Exam.Add(new StudentExamResponse
+                {
+
+                    ExamId = Convert.ToInt32(reader["ExamId"]),
+                    ExamName = reader["ExamName"]?.ToString() ?? string.Empty,
+                    Description = reader["Description"]?.ToString() ?? string.Empty,
+                    DurationMinutes = Convert.ToInt32(reader["DurationMinutes"]),
+                    TotalQuestions = Convert.ToInt32(reader["TotalQuestions"]),
+                    MCQCount = Convert.ToInt32(reader["MCQCount"]),
+                    CodingCount = Convert.ToInt32(reader["CodingCount"]),
+                    StartAt = Convert.ToDateTime(reader["StartAt"]),
+                    EndAt = Convert.ToDateTime(reader["EndAt"])
+                });
+                     
+
+            }
+
+            //List.Add(Response);
+
+           
+              return Response;
+            
+
+        }
+        public async Task<List<EnrollStudentResponse>> GetEligibleStudentsAsync(long examId)
+        {
+            var list = new List<EnrollStudentResponse>();
+            await using SqlConnection connection =
+                new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            await using SqlCommand command =
+                new SqlCommand("sp_Exam_GetEnrollStudents", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue(
+                "@ExamId",
+                examId);
+
+            await connection.OpenAsync();
+
+            await using SqlDataReader reader =
+                await command.ExecuteReaderAsync();
+
+           // DataTable table = new DataTable();
+
+            while (await reader.ReadAsync())
+            {
+                var student = new EnrollStudentResponse
+                {
+                    StudentId = Convert.ToInt64(
+                        reader["StudentId"]),
+
+                    RollNo = reader["RollNumber"]?.ToString()
+                             ?? string.Empty,
+
+                    Name = reader["StudentName"]?.ToString()
+                           ?? string.Empty,
+
+                    Batch = reader["Batch"]?.ToString()
+                            ?? string.Empty,
+
+                    Course = reader["Course"]?.ToString()
+                             ?? string.Empty,
+
+                    Email = reader["Email"]?.ToString()
+                            ?? string.Empty,
+
+                    MobileNo = reader["MobileNo"]?.ToString()
+                               ?? string.Empty,
+
+                    CollegeId = Convert.ToInt32(
+                        reader["CollegeId"])
+                };
+
+                list.Add(student);
+            }
+
+            return list;
+
+
+        }
+
+
+        public async Task<StartAttemptResponse> StartExamAttemptAsync(
+     long examId,
+     long studentId)
+        {
+            using SqlConnection connection =
+                new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            var response =
+                await connection.QueryFirstOrDefaultAsync<StartAttemptResponse>( 
+                    "usp_Exam_StartAttempt",
+                    new {examId, studentId},
+                    commandType: CommandType.StoredProcedure);
+
+                 return response
+                ?? new StartAttemptResponse
+                {
+                    IsSuccess = false,
+                    Message = "No response received from database."
+                };
+        }
+
+        public async Task<StudentExamDTO> GetScheduledExamsForStudentAsync(int studentId)
+        {
+            var List = new List<StudentExamDTO>();
+            var Response = new StudentExamDTO();
+            await using SqlConnection connection =
+                new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            await using SqlCommand command = new SqlCommand("sp_Student_GetExamsByStudentId", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue(
+                "@StudentId",
+                studentId);
 
             await connection.OpenAsync();
 
@@ -204,75 +371,19 @@ namespace OnlineAssesmentAPI.Repositories
                     MCQCount = Convert.ToInt32(reader["MCQCount"]),
                     CodingCount = Convert.ToInt32(reader["CodingCount"]),
                     StartAt = Convert.ToDateTime(reader["StartAt"]),
-                    EndAt = Convert.ToDateTime(reader["EndAt"])
+                    EndAt = Convert.ToDateTime(reader["EndAt"]),
+                    ExamStarted = Convert.ToBoolean(reader["ExamStarted"])
+
                 });
-                     
 
-                }
 
-                //List.Add(Response);
-
-            
-
-                return Response;
-
-        }
-        public async Task<List<EnrollStudentResponse>> GetEligibleStudentsAsync(long examId)
-        {
-            var list = new List<EnrollStudentResponse>();
-            await using SqlConnection connection =
-                new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
-            await using SqlCommand command =
-                new SqlCommand("sp_Exam_GetEnrollStudents", connection);
-
-            command.CommandType = CommandType.StoredProcedure;
-
-            command.Parameters.AddWithValue(
-                "@ExamId",
-                examId);
-
-            await connection.OpenAsync();
-
-            await using SqlDataReader reader =
-                await command.ExecuteReaderAsync();
-
-            DataTable table = new DataTable();
-
-            while (await reader.ReadAsync())
-            {
-                var student = new EnrollStudentResponse
-                {
-                    StudentId = Convert.ToInt64(
-                        reader["StudentId"]),
-
-                    RollNo = reader["RollNumber"]?.ToString()
-                             ?? string.Empty,
-
-                    Name = reader["StudentName"]?.ToString()
-                           ?? string.Empty,
-
-                    Batch = reader["Batch"]?.ToString()
-                            ?? string.Empty,
-
-                    Course = reader["Course"]?.ToString()
-                             ?? string.Empty,
-
-                    Email = reader["Email"]?.ToString()
-                            ?? string.Empty,
-
-                    MobileNo = reader["MobileNo"]?.ToString()
-                               ?? string.Empty,
-
-                    CollegeId = Convert.ToInt32(
-                        reader["CollegeId"])
-                };
-
-                list.Add(student);
             }
 
-            return list;
+            //List.Add(Response);
 
+
+
+            return Response;
 
         }
     }
