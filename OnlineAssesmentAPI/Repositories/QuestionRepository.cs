@@ -60,7 +60,7 @@ namespace OnlineAssesmentAPI.Repositories
         }
 
         //---------Upload MCQ Questions from CSV or Excel file to Database using Stored Procedure----------------------------
-        public async Task<string> UploadMcq(IFormFile file)
+        public async Task<string> UploadMcq(IFormFile file, long createdByUserId)
         {
             var questions = new List<Question>();
 
@@ -93,14 +93,14 @@ namespace OnlineAssesmentAPI.Repositories
                     cmd.Parameters.AddWithValue("@QuestionText", item.QuestionText ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@QuestionType", "MCQ");
                     cmd.Parameters.AddWithValue("@Difficulty", item.Difficulty ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CreatedByUserId", 1);
+                    cmd.Parameters.AddWithValue("@CreatedByUserId", createdByUserId);
                     cmd.Parameters.AddWithValue("@Status", true);
                     cmd.Parameters.AddWithValue("@Option1", item.Option1 ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Option2", item.Option2 ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Option3", item.Option3 ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Option4", item.Option4 ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CorrectAnswer", item.CorrectAnswer ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Topic", item.Topic ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@Topic", item.Topic ?? (object)DBNull.Value);
 
                     await cmd.ExecuteNonQueryAsync();
                 }
@@ -141,14 +141,14 @@ namespace OnlineAssesmentAPI.Repositories
                     cmd.Parameters.AddWithValue("@QuestionText", question.QuestionText);
                     cmd.Parameters.AddWithValue("@QuestionType", question.QuestionType);
                     cmd.Parameters.AddWithValue("@Difficulty", question.Difficulty ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CreatedByUserId", question.CreatedByUserId);
+                    cmd.Parameters.AddWithValue("@CreatedByUserId", createdByUserId);
                     cmd.Parameters.AddWithValue("@Status", question.Status);
                     cmd.Parameters.AddWithValue("@Option1", question.Option1 ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Option2", question.Option2 ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Option3", question.Option3 ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Option4", question.Option4 ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CorrectAnswer", question.CorrectAnswer ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Topic", question.Topic ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@Topic", question.Topic ?? (object)DBNull.Value);
                     var result = await cmd.ExecuteNonQueryAsync();
 
                 }
@@ -161,7 +161,7 @@ namespace OnlineAssesmentAPI.Repositories
         }
 
         //--------Upload Coding Questions from CSV or Excel file to Database using Stored Procedure----------------------------
-        public async Task<string> UploadCoding(IFormFile file)
+        public async Task<string> UploadCoding(IFormFile file, long createdByUserId)
         {
             var questions = new List<CodingQuestion>();
 
@@ -199,13 +199,11 @@ namespace OnlineAssesmentAPI.Repositories
                     cmd.Parameters.AddWithValue("@Constraints", item.Constraints ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@StarterCode", item.StarterCode ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Difficulty", item.Difficulty ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CreatedBy", item.CreatedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatedBy", createdByUserId);
                     cmd.Parameters.AddWithValue("@UpdatedBy", item.UpdatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Status", true);
                     cmd.Parameters.AddWithValue("@IsActive", item.IsActive);
-                    //cmd.Parameters.AddWithValue("@CreatedDate", item.CreatedDate);
-                    //cmd.Parameters.AddWithValue("@UpdatedDate", item.UpdatedDate ?? (object)DBNull.Value);
-
+                    
                     await cmd.ExecuteNonQueryAsync();
                 }
 
@@ -230,16 +228,14 @@ namespace OnlineAssesmentAPI.Repositories
                         InputDescription = row.Cell(2).GetValue<string>(),
                         OutputDescription = row.Cell(3).GetValue<string>(),
                         Constraints = row.Cell(4).GetValue<string>(),
-                        FunctionParameterType = row.Cell(5).GetValue<string>(),
-                        FunctionReturnType = row.Cell(6).GetValue<string>(),
+                        FunctionParameterType = row.Cell(15).GetValue<string>(),
+                        FunctionReturnType = row.Cell(16).GetValue<string>(),
                         StarterCode = null,
-                        Difficulty = row.Cell(7).GetValue<string>(),
+                        Difficulty = row.Cell(9).GetValue<string>(),
                         CreatedBy = "1",
                         UpdatedBy = "1",
                         Status = "true",
                         IsActive = true,
-                        //CreatedDate = DateTime.UtcNow,
-                        //UpdatedDate = null
                     };
 
                     using var cmd = new SqlCommand("USP_InsertCodingQuestions", connection);
@@ -253,13 +249,11 @@ namespace OnlineAssesmentAPI.Repositories
                     cmd.Parameters.AddWithValue("@Constraints", question.Constraints ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@StarterCode", question.StarterCode ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Difficulty", question.Difficulty ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CreatedBy", question.CreatedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatedBy", createdByUserId);
                     cmd.Parameters.AddWithValue("@UpdatedBy", question.UpdatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Status", question.Status);
                     cmd.Parameters.AddWithValue("@IsActive", question.IsActive);
-                    //cmd.Parameters.AddWithValue("@CreatedDate", question.CreatedDate);
-                    //cmd.Parameters.AddWithValue("@UpdatedDate", question.UpdatedDate ?? (object)DBNull.Value);
-
+                   
                     var result = await cmd.ExecuteNonQueryAsync();
                 }
                 // await connection.CloseAsync();

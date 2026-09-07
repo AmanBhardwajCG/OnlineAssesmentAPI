@@ -23,35 +23,43 @@ namespace OnlineAssesmentAPI.Controllers
         }
 
         [HttpPost("CreateExam")]
-        public async Task<IActionResult> CreateExam(CreateExamRequest request)
+        public async Task<IActionResult> CreateExam([FromBody] ExamResponse createExamRequest)
         {
             try
             {
-            var userIdClaim =
-                    User.FindFirst(ClaimTypes.NameIdentifier);
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (userIdClaim == null)
-            {
-                return Unauthorized();
-            }
-
-            long userId =
-                Convert.ToInt64(userIdClaim.Value);
-            var result = await _examRepository.CreateExamAsync(request, userId);
-                if (result <= 0)
+                if (userIdClaim == null)
                 {
-                    return BadRequest(new
-                    {
-                        IsSuccess = false,
-                        Message = "Exam creation failed."
-                    });
+                    return Unauthorized();
                 }
+
+                long userId = Convert.ToInt64(userIdClaim.Value);
+
+                if (createExamRequest == null)
+                {
+                    return BadRequest("Exam Details are required !!");
+                }
+                if (string.IsNullOrWhiteSpace(createExamRequest.ExamName))
+                {
+                    return BadRequest("Exam name is required.");
+                }
+
+                if (createExamRequest.DurationMinutes <= 0)
+                {
+                    return BadRequest("Duration must be greater than 0.");
+                }
+
+                //if (createExamRequest.EndAt <= createExamRequest.StartAt)
+                //{
+                //    return BadRequest("End time must be greater than start time.");
+                //}
+
+                await _examRepository.CreateExamAsync(createExamRequest, userId);
 
                 return Ok(new
                 {
-                    IsSuccess = true,
-                    Message = "Exam created successfully.",
-                    ExamId = result
+                    message = "Wohoo!! Exam created successfully."
                 });
             }
             catch (Exception)

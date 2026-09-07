@@ -7,8 +7,8 @@ namespace OnlineAssesmentAPI.Interface
         //Task<long> CreateQuestionAsync(Question question, long createdByUserId);
         //Task<bool> PublishQuestionAsync(QuestionReview Review);
 
-        Task<string> UploadMcq(IFormFile file);
-        Task<string> UploadCoding(IFormFile file);
+        Task<string> UploadMcq(IFormFile file, long createdByUserId);
+        Task<string> UploadCoding(IFormFile file, long createdByUserId);
         Task<List<Question>> GetAllMcqQuestions();
 
 
