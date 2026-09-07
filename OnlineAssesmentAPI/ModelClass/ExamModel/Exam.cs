@@ -65,6 +65,7 @@
         public int CodingCount { get; set; }
         public DateTime StartAt { get; set; }
         public DateTime EndAt { get; set; }
+        public bool ExamStarted { get; set; }
     }
 
     public class StudentResponse
@@ -89,6 +90,7 @@
     {
         public StudentResponse? Student { get; set; }
         public List<StudentExamResponse> Exam { get; set; } = new();
+        public string? Message { get; set; }
     }
            
 
