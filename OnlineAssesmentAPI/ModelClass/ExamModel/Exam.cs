@@ -8,8 +8,8 @@
             public int TotalQuestions { get; set; }
             public int MCQCount { get; set; }
             public int CodingCount { get; set; }
-            //public DateTime StartAt { get; set; }
-            //public DateTime EndAt { get; set; }
+            public DateTime StartAt { get; set; }
+            public DateTime EndAt { get; set; }
         }
     public class AssignExamCollegeRequest
     {
@@ -96,6 +96,29 @@
     {
         public long ExamId { get; set; }
         public int Status { get; set; }
+    }
+
+    //----------Exam Response------------
+
+    public class ExamResponse
+    {
+        public int ExamId { get; set; }
+
+        public string ExamName { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+
+        public int DurationMinutes { get; set; }
+
+        //public DateTime StartAt { get; set; }
+
+        //public DateTime EndAt { get; set; }
+
+        public string Status { get; set; } = string.Empty;
+
+        public long CreatedByUserId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
     }
 
 }

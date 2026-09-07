@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OnlineAssesmentAPI.Interface;
 using OnlineAssesmentAPI.ModelClass;
+using OnlineAssesmentAPI.ModelClass.ExamModel;
 using System.Security.Claims;
 
 namespace OnlineAssesmentAPI.Controllers
@@ -23,31 +24,69 @@ namespace OnlineAssesmentAPI.Controllers
             var result = await _questionRepository.GetAllMcqQuestions();
             return Ok(result);
         }
+
+
         [HttpPost("upload-mcq")]
         //[Route("api/[controller]")]
         public async Task<IActionResult> UploadMcq(IFormFile file)
         {
-            if (file == null || file.Length == 0)
+            try
             {
-                return BadRequest("Please upload a valid file.");
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                {
+                    return Unauthorized();
+                }
+
+                long userId = Convert.ToInt64(userIdClaim.Value);
+
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("Please upload a valid file.");
+                }
+                var result = await _questionRepository.UploadMcq(file, userId);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(
+                     StatusCodes.Status500InternalServerError,
+                     "An error occurred while creating the question.");
             }
 
-            var result = await _questionRepository.UploadMcq(file);
-
-            return Ok(result);
         }
 
         [HttpPost("upload-coding")]
         public async Task<IActionResult> UploadCoding(IFormFile file)
         {
-            if (file == null || file.Length == 0)
+            try
             {
-                return BadRequest("Please upload a valid file.");
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                {
+                    return Unauthorized();
+                }
+
+                long userId = Convert.ToInt64(userIdClaim.Value);
+
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("Please upload a valid file.");
+                }
+                var result = await _questionRepository.UploadCoding(file, userId);
+                return Ok(result);
+
             }
-
-            var result = await _questionRepository.UploadCoding(file);
-
-            return Ok(result);
+            catch (Exception ex)
+            {
+                return StatusCode(
+                     StatusCodes.Status500InternalServerError,
+                     "An error occurred while creating the question.");
+            }
         }
         //[Route("api/[controller]")]
         //[ApiController]

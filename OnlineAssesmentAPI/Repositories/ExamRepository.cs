@@ -14,57 +14,56 @@ namespace OnlineAssesmentAPI.Repositories
             _configuration = configuration;
         }   
 
-        public async Task<long> CreateExamAsync(CreateExamRequest request, long createdByUserId)
+        public async Task<ExamResponse> CreateExamAsync(ExamResponse request, long createdByUserId)
         {
-            await using SqlConnection connection =
-            new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            await using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            await using var command = new SqlCommand("USP_CreateExam", connection);
 
-            await using SqlCommand command =
-                new SqlCommand("sp_Exam_Create", connection);
+            command.CommandType = System.Data.CommandType.StoredProcedure;
 
-            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@ExamName", SqlDbType.NVarChar, 200)
+           .Value = request.ExamName;
 
-            command.Parameters.AddWithValue(
-                "@ExamName", request.ExamName);
+            command.Parameters.Add("@Description", SqlDbType.NVarChar)
+                .Value = (object?)request.Description ?? DBNull.Value;
 
-            command.Parameters.AddWithValue(
-                "@Description",
-                (object?)request.Description ?? DBNull.Value);
+            command.Parameters.Add("@DurationMinutes", SqlDbType.Int)
+                .Value = request.DurationMinutes;
 
-            command.Parameters.AddWithValue(
-                "@DurationMinutes",
-                request.DurationMinutes);
+            command.Parameters.Add("@Status", SqlDbType.NVarChar, 30)
+    .Value = request.Status ?? "Active";
 
-            command.Parameters.AddWithValue(
-                "@TotalQuestions",
-                request.TotalQuestions);
+            command.Parameters.Add("@CreatedByUserId", SqlDbType.BigInt)
+                .Value = createdByUserId;
 
-            command.Parameters.AddWithValue(
-                "@MCQCount",
-                request.MCQCount);
-
-            command.Parameters.AddWithValue(
-                "@CodingCount",
-                request.CodingCount);
-
-            //command.Parameters.AddWithValue(
-            //    "@StartAt",
-            //    request.StartAt);
-
-            //command.Parameters.AddWithValue(
-            //    "@EndAt",
-            //    request.EndAt);
-
-            command.Parameters.AddWithValue(
-                "@CreatedByUserId",
-                 createdByUserId);
+            command.Parameters.Add("@CreatedAt", SqlDbType.DateTime2)
+                .Value = DateTime.UtcNow;
 
             await connection.OpenAsync();
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
 
-            object? result = await command.ExecuteScalarAsync();
+            if (await reader.ReadAsync())
+            {
 
-            return Convert.ToInt64(result);
+                return new ExamResponse
+                {
+                    ExamId = Convert.ToInt32(reader["ExamId"]),
+                    ExamName = reader["ExamName"].ToString()!,
+                    Description = reader["Description"] == DBNull.Value
+                    ? null
+                    : reader["Description"].ToString(),
 
+                    DurationMinutes = Convert.ToInt32(reader["DurationMinutes"]),
+
+                    Status = reader["Status"].ToString()!,
+
+                    CreatedByUserId = Convert.ToInt64(createdByUserId),
+
+                    CreatedAt = Convert.ToDateTime(reader["CreatedAt"])
+
+                };
+            }
+            throw new Exception("Exam could not be created.");
 
          }
 
@@ -275,6 +274,8 @@ namespace OnlineAssesmentAPI.Repositories
 
 
         }
+
+
     }
 }
 

@@ -7,7 +7,7 @@ namespace OnlineAssesmentAPI.Interface
 {
     public interface IExamRepository
     {
-        Task<long> CreateExamAsync(CreateExamRequest request, long createdByUserId);
+        Task<ExamResponse> CreateExamAsync(ExamResponse request, long createdByUserId);
         Task<(bool IsSuccess, string Message)> AssignCollegeAsync(AssignExamCollegeRequest request);
 
         Task<List<EnrollStudentResponse>> GetEligibleStudentsAsync(long examId);
@@ -15,6 +15,5 @@ namespace OnlineAssesmentAPI.Interface
         Task<StudentExamDTO> GetStudentExamsAsync(string email, string rollnumber);
 
         Task<bool> PublishExamAsync(ExamReview Review);
-
     }
 }
