@@ -1,10 +1,12 @@
 ﻿using Dapper;
+using DocumentFormat.OpenXml.Office.Word;
 using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.Data.SqlClient;
 using OnlineAssesmentAPI.Interface;
 using OnlineAssesmentAPI.ModelClass.ExamModel;
 using ServiceStack;
 using System.Data;
+using System.Reflection.Metadata;
 
 namespace OnlineAssesmentAPI.Repositories
 {
@@ -293,18 +295,29 @@ namespace OnlineAssesmentAPI.Repositories
             using SqlConnection connection =
                 new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
-            var response =
-                await connection.QueryFirstOrDefaultAsync<StartAttemptResponse>( 
-                    "usp_Exam_StartAttempt",
-                    new {examId, studentId},
-                    commandType: CommandType.StoredProcedure);
+            //var response =
+            //    await connection.QueryFirstOrDefaultAsync<StartAttemptResponse>( 
+            //        "usp_Exam_StartAttempt",
+            //        new {examId, studentId},
+            //        commandType: CommandType.StoredProcedure);
 
-                 return response
-                ?? new StartAttemptResponse
-                {
-                    IsSuccess = false,
-                    Message = "No response received from database."
-                };
+            using var multi = await connection.QueryMultipleAsync("usp_Exam_StartAttempt",
+                new { examId, studentId }, commandType: CommandType.StoredProcedure);
+        
+             // Result Set 1
+             var attempt = await multi.ReadFirstOrDefaultAsync<AttemptResponse>();
+
+            // Result Set 2
+            var questions = (await multi.ReadAsync<ExamQuestions>())
+                            .ToList();
+
+            return new StartAttemptResponse
+            {
+                AttemptResponse = attempt,
+                ExamQuestions = questions
+            };
+
+
         }
 
         public async Task<StudentExamDTO> GetScheduledExamsForStudentAsync(int studentId)
@@ -354,8 +367,6 @@ namespace OnlineAssesmentAPI.Repositories
                         Email = reader["Email"]?.ToString()
                             ?? string.Empty,
 
-
-
                         CollegeId = Convert.ToInt32(
                         reader["CollegeId"])
                     };
@@ -380,8 +391,6 @@ namespace OnlineAssesmentAPI.Repositories
             }
 
             //List.Add(Response);
-
-
 
             return Response;
 

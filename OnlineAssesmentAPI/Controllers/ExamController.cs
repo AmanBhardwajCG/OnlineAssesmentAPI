@@ -161,14 +161,14 @@ namespace OnlineAssesmentAPI.Controllers
         }
 
 
-        [HttpPost("start/{examId:long}")]
+        [HttpPost("StartExam/Resume")]
         public async Task<IActionResult> StartExam(long examId)
         {
             try
             {
                 // Get StudentId from JWT
                 long studentId = GetStudentIdFromToken();
-                if(studentId==null)
+                if (studentId == null)
                 {
                     return Unauthorized();
                 }
@@ -177,7 +177,7 @@ namespace OnlineAssesmentAPI.Controllers
                         examId,
                         studentId);
 
-                if (!response.IsSuccess)
+                if (!response.AttemptResponse.IsSuccess)
                 {
                     return BadRequest(response);
                 }
